@@ -229,25 +229,3 @@
 		}
 	};
 })();
-
-
-
-var eq_check = new Test("Equality check no. 1");
-
-// the test
-eq_check.test(Test.value.eq);
-
-// the test cases
-eq_check.expect(true).on(1, 1);
-eq_check.expect(false).on(1, "1");
-
-// run the tests
-eq_check.run();
-
-
-var lt_check = Test.run("Less-than check no. 1", Test.value.lt, [
-	[true, [1, 10]]
-]);
-
-Test.output(eq_check);
-Test.output(lt_check);
