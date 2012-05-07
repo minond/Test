@@ -56,6 +56,7 @@
 	 */
 	var Test = window.Test = function (test_name) {
 		this.test_name = test_name;
+		this.test = Test.value.eq;
 		this.cases = [];
 		this.results = [];
 
@@ -70,7 +71,7 @@
 	 * 
 	 * set the Test's test function 
 	 */
-	Test.prototype.test = function (test) {
+	Test.prototype.set_test = function (test) {
 		this.test = test;
 	};
 
@@ -148,7 +149,7 @@
 		test = new Test(test_name);
 
 		// set the test function
-		test.test(test_function);
+		test.set_test(test_function);
 		
 		// set all test cases
 		for (var i = 0, max = test_cases.length; i < max; i++) {
@@ -291,6 +292,113 @@
 		ge: function (a, b) {
 			return a >= b;
 		}
+	};
+
+	/**
+	 * @name dump
+	 * @param obj mixed
+	 * @param level int (internal)
+	 * @return string
+	 * 
+	 * parses any variable into a human readable string.
+	 */
+	Test.dump = function (obj, level) {
+		var str = "", padding = "", first = true, empty = true;
+		var TAB = "  ", NEW_LINE = "\n";
+
+		var padding_for = function (lvl) {
+			var padding_str = "";
+
+			for (var i = 0; i < lvl; i++) {
+				padding_str += TAB;
+			}
+
+			return padding_str;
+		};
+
+		if (!level) {
+			level = 0;
+		}
+
+		padding = padding_for(level);
+
+		if (level > 50) {
+			return "-- max --";
+		}
+
+		switch (true) {
+			case typeof obj === "string":
+				str += "\"" + obj + "\"";
+
+				break;
+			case typeof obj === "number":
+				str += obj;
+
+				break;
+			case obj instanceof Function:
+				str += "Function";
+
+				break;
+			case obj === void 0:
+				str += "undefined";
+
+				break;
+			case obj === null:
+				str += "null";
+
+				break;
+			case obj instanceof Date:
+			case obj instanceof RegExp:
+				str += obj.toString();
+
+				break;
+			case obj instanceof Array: 
+				str += "[" + NEW_LINE;
+
+				for (var i = 0, max = obj.length; i < max; i++) {
+					str += padding_for(level + 1) + Test.dump(obj[ i ], level + 1);
+
+					if (i + 1 < max) {
+						str += ", " + NEW_LINE;
+					}
+
+					empty = false;
+				}
+
+				str += NEW_LINE + padding + "]";
+
+				if (empty) {
+					str = "[]";
+				}
+
+				break;
+			case obj instanceof Object:
+				str += "{";
+
+				for (var prop in obj) {
+					if (!first) {
+						str += ",";
+					}
+
+					str += NEW_LINE + padding_for(level + 1) + prop + ": " + Test.dump(obj[ prop ], level + 1);
+					first = false;
+					empty = false;
+				}
+
+				str += NEW_LINE + padding + "}";
+
+				if (empty) {
+					str = "{}";
+				}
+
+				break;
+			default:
+				str += obj.toString();
+
+				break;
+		}
+
+		return str;
 	};
 
 	/**
