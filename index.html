@@ -2,6 +2,8 @@
 	<body></body>
 	<script type="text/javascript" src="Test.js"></script>
 	<script type="text/javascript">
+
+	Test.settings.show_fail_information = false;
 	
 	var eq_check = new Test("Equality check no. 1");
 
@@ -16,12 +18,15 @@
 	eq_check.run();
 
 
-	var lt_check = Test.run("Less-than check no. 1", Test.value.lt, [
-	    [true, [1, 10]]
-	]);
+	// var lt_check = Test.run("Less-than check no. 1", Test.value.lt, [
+	var lt_check = Test.run("Less-than check no. 1", function (a) {
+		return Math.random() < a;
+	}, [
+	    [true, [.5]]
+	], 50);
 
-	Test.output(eq_check);
-	Test.output(lt_check);
+	Test.display.output();
+	Test.display.summary();
 
 	</script>
 </html>

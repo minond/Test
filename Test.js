@@ -22,7 +22,7 @@
 "use strict";
 
 
-(function (global) {
+(function () {
 	/**
 	 * @constructor TestCase
 	 * @param mixed exact test result value
@@ -58,6 +58,9 @@
 		this.test_name = test_name;
 		this.cases = [];
 		this.results = [];
+
+		// save this test
+		Test.created_tests[ test_name ] = this;
 	};
 
 	/**
@@ -106,6 +109,8 @@
 			times = 1;
 		}
 
+		this.times = times;
+
 		// loop through all test cases
 		for (var j = 0; j < times; j++) {
 			for (var i = 0, max = this.cases.length; i < max; i++) {
@@ -117,6 +122,7 @@
 				this.results.push({
 					pass: pass,
 					test_case: i,
+					case_iteration_count: j,
 					actual: grade,
 					expected: test.expects,
 					parameters: test.parameters
@@ -162,14 +168,69 @@
 	};
 
 	/**
+	 * @name display
+	 * output namespace
+	 */
+	Test.display = {};
+
+	/**
+	 * @name summary
+	 * @param Test
+	 * @return bool output success
+	 */
+	Test.display.summary = function (test) {
+		var new_results = [], test_name;
+
+		if (!test) {
+			for (var test in Test.created_tests) {
+				if (Test.created_tests[ test ] instanceof Test) {
+					Test.display.summary(Test.created_tests[ test ]);
+				}
+			}
+
+			return true;
+		}
+
+		for (var i = 0, max = test.results.length; i < max; i++) {
+			if (!test.results[ i ].pass) {
+				new_results.push(test.results[ i ]);
+			}
+		}
+
+		if (!new_results.length) {
+			return false;
+		}
+
+		test_name = test.test_name + " (" + new_results.length + "/" + test.results.length + ")";
+
+		return Test.display.output({
+			cases: test.cases,
+			results: new_results,
+			test: test.test,
+			test_name: test_name,
+			times: test.times
+		});
+	};
+
+	/**
 	 * @name output
 	 * @param Test
 	 * @return bool output success
 	 * 
 	 * outputs test results to the console.
 	 */
-	Test.output = function (test) {
-		var ctest, out;
+	Test.display.output = function (test) {
+		var ctest, out, case_count, case_iteration, case_result;
+
+		if (!test) {
+			for (var test in Test.created_tests) {
+				if (Test.created_tests[ test ] instanceof Test) {
+					Test.display.output(Test.created_tests[ test ]);
+				}
+			}
+
+			return true;
+		}
 
 		if (!test.results.length) {
 			return false;
@@ -182,10 +243,13 @@
 			ctest = test.results[i];
 
 			out = (ctest.pass ? console.log : console.warn).bind(console);
+			case_count = "Case #" + (ctest.test_case + 1);
+			case_iteration = test.times > 1 ? "(" + (ctest.case_iteration_count + 1) + ")\t" : "\t";
+			case_result = ctest.pass ? "(pass)" : "(fail)";
 
-			out("Case #" + ctest.test_case, "-", ctest.pass ? "pass" : "fail");
+			out(case_count, case_iteration, case_result);
 
-			if (!ctest.pass) {
+			if (!ctest.pass && Test.settings.show_fail_information) {
 				out("Actual:", ctest.actual);
 				out("Extected:", ctest.expected);
 				out("Parameters:", ctest.parameters);
@@ -227,5 +291,33 @@
 		ge: function (a, b) {
 			return a >= b;
 		}
+	};
+
+	/**
+	 * @name settings
+	 * test and output settings
+	 */
+	Test.settings = {
+		show_fail_information: true
+	};
+
+	/**
+	 * @name created_tests
+	 * stores all created tests
+	 */
+	Test.created_tests = {};
+
+	/**
+	 * @name save_all
+	 * saves all created tests
+	 */
+	Test.save_all = function () {};
+
+	/**
+	 * @name try_again
+	 * refreshes page
+	 */
+	Test.try_again = function () {
+		window.location.reload();
 	};
 })();
