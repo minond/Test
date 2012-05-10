@@ -54,7 +54,7 @@
 	 * 
 	 * creates a new Test instance
 	 */
-	var Test = window.Test = function (test_name) {
+	var Test = window.Test = function (test_name, basic_case_result) {
 		this.test_name = test_name;
 		this.test = Test.value.eq;
 		this.cases = [];
@@ -62,6 +62,11 @@
 
 		// save this test
 		Test.created_tests[ test_name ] = this;
+
+		// default case check
+		if (basic_case_result) {
+			this.expect(basic_case_result);
+		}
 	};
 
 	/**
@@ -169,23 +174,37 @@
 	};
 
 	/**
+	 * @name
+	 * @return void
+	 *
+	 * runs all created tests
+	 */
+	Test.run_all = function () {
+		for (var test in Test.created_tests) {
+			if (Test.created_tests[ test ] instanceof Test) {
+				Test.created_tests[ test ].run();
+			}
+		}
+	};
+
+	/**
 	 * @name display
 	 * output namespace
 	 */
 	Test.display = {};
 
 	/**
-	 * @name summary
+	 * @name output_failures
 	 * @param Test
 	 * @return bool output success
 	 */
-	Test.display.summary = function (test) {
+	Test.display.output_failures = function (test) {
 		var new_results = [], test_name;
 
 		if (!test) {
 			for (var test in Test.created_tests) {
 				if (Test.created_tests[ test ] instanceof Test) {
-					Test.display.summary(Test.created_tests[ test ]);
+					Test.display.output_failures(Test.created_tests[ test ]);
 				}
 			}
 
@@ -250,10 +269,10 @@
 
 			out(case_count, case_iteration, case_result);
 
-			if (!ctest.pass && Test.settings.show_fail_information) {
-				out("Actual:", ctest.actual);
-				out("Extected:", ctest.expected);
-				out("Parameters:", ctest.parameters);
+			if ((!ctest.pass && Test.settings.show_fail_information) || (ctest.pass && Test.settings.show_success_information)) {
+				out("Actual:", Test.display.dump(ctest.actual));
+				out("Extected:", Test.display.dump(ctest.expected));
+				out("Parameters:", Test.display.dump(ctest.parameters));
 			}
 		}
 
@@ -262,6 +281,68 @@
 		console.log("");
 
 		return true;
+	};
+
+	/**
+	 * @name summary_information
+	 * @param Test
+	 * @return bool output success
+	 * 
+	 * outputs a summary of the test results.
+	 */
+	Test.display.summary_information = function (test) {
+		var total = 0, success = 0, fail = 0;
+
+		if (!test) {
+			for (var test in Test.created_tests) {
+				if (Test.created_tests[ test ] instanceof Test) {
+					Test.display.summary_information(Test.created_tests[ test ]);
+				}
+			}
+
+			return true;
+		}
+
+		if (!test.results.length) {
+			return false;
+		}
+
+		total = test.results.length;
+		for (var i = 0; i < total; i++) {
+			if (test.results[ i ].pass) {
+				success++;
+			}
+			else {
+				fail++;
+			}
+		}
+
+		console.log("\t%d\t\t%d\t\t%d\t\t%s", total, success, fail, test.test_name);
+	};
+
+	/**
+	 * @name summary_header
+	 * @param Test
+	 * @return bool output success
+	 * 
+	 * outputs a summary header
+	 */
+	Test.display.summary_header = function () {
+		console.log("\t%s\t\t%s\t\t%s\t\t%s", "Total", "Success", "Fail", "Test Name");
+		console.log("\t-------------------------------------------------------------------------");
+	};
+
+	/**
+	 * @name summary
+	 * @param Test
+	 * @return void
+	 * 
+	 * outputs a summary of the test results
+	 * with a table header
+	 */
+	Test.display.summary = function () {
+		this.summary_header();
+		this.summary_information();
 	};
 
 	/**
@@ -302,7 +383,7 @@
 	 * 
 	 * parses any variable into a human readable string.
 	 */
-	Test.dump = function (obj, level) {
+	Test.display.dump = function (obj, level) {
 		var str = "", padding = "", first = true, empty = true;
 		var TAB = "  ", NEW_LINE = "\n";
 
@@ -356,7 +437,7 @@
 				str += "[" + NEW_LINE;
 
 				for (var i = 0, max = obj.length; i < max; i++) {
-					str += padding_for(level + 1) + Test.dump(obj[ i ], level + 1);
+					str += padding_for(level + 1) + Test.display.dump(obj[ i ], level + 1);
 
 					if (i + 1 < max) {
 						str += ", " + NEW_LINE;
@@ -380,7 +461,7 @@
 						str += ",";
 					}
 
-					str += NEW_LINE + padding_for(level + 1) + prop + ": " + Test.dump(obj[ prop ], level + 1);
+					str += NEW_LINE + padding_for(level + 1) + prop + ": " + Test.display.dump(obj[ prop ], level + 1);
 					first = false;
 					empty = false;
 				}
@@ -406,7 +487,13 @@
 	 * test and output settings
 	 */
 	Test.settings = {
-		show_fail_information: true
+		// display additional inforamation about
+		// failed cases.
+		show_fail_information: true,
+
+		// display additional inforamation about
+		// succesfull cases.
+		show_success_information: true
 	};
 
 	/**
