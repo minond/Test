@@ -72,17 +72,17 @@
 			syntax[0] = node(STYLE, {
 				rel: "stylesheet",
 				type: "text/css",
-				href: "rainbow/tricolore.css"
+				href: "/Test/rainbow/tricolore.css"
 			});
 
 			syntax[1] = node(SCRIPT, {
 				type: "text/javascript",
-				src: "rainbow/rainbow.min.js"
+				src: "/Test/rainbow/rainbow.min.js"
 			});
 
 			syntax[2] = node(SCRIPT, {
 				type: "text/javascript",
-				src: "rainbow/generic.js"
+				src: "/Test/rainbow/generic.js"
 			});
 
 			document.head.appendChild(style);
@@ -180,7 +180,9 @@
 			holder.appendChild(action_holder);
 		}
 
-		document.body.appendChild(holder);
+		if (Test.created_tests.length) {
+			document.body.appendChild(holder);
+		}
 
 		// print_r data
 		if (this.to_show.length) {
