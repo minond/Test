@@ -58,6 +58,7 @@
 	 */
 	Test.display.show = function () {
 		var style, syntax, holder, results, row, test_case, total, passes, fails;
+		var show = false;
 
 		if (!css_added) {
 			css_added = true;
@@ -112,6 +113,7 @@
 
 		// test results
 		for (var test in Test.created_tests) {
+			show = true;
 			total = 0;
 			passes = 0;
 
@@ -177,21 +179,32 @@
 				})
 			);
 
+			action_holder.appendChild(
+				node("input", {
+					className: "Test_action_button",
+					type: "button",
+					value: "Stop",
+					onclick: function () {
+						if (timer) {
+							clearTimeout(timer);
+						}
+					}
+				})
+			);
+
 			holder.appendChild(action_holder);
 		}
 
-		if (Test.created_tests.length) {
+		if (show) {
 			document.body.appendChild(holder);
 		}
 
 		// print_r data
 		if (this.to_show.length) {
-			var print_holder = node(BLOCK, {
-				className: "Test_holder Test_shadow"
-			});
-
 			for (var i = 0, max = this.to_show.length; i < max; i++) {
-				var code;
+				var code, print_holder = node(BLOCK, {
+					className: "Test_holder Test_shadow"
+				});
 
 				print_holder.appendChild(node(BLOCK, {
 					innerHTML: this.to_show[ i ].title,
@@ -207,11 +220,13 @@
 				code.dataset.language = "javascript";
 
 				print_holder.appendChild(code);
+				document.body.appendChild(print_holder);
 			}
-
-			document.body.appendChild(print_holder);
 		}
 	};
+
+
+	var timer;
 
 	/**
 	 * @name reset_int
@@ -220,20 +235,21 @@
 	 * 
 	 * reloads the page is all tests have passed
 	 */
-	Test.display.show.reset_in = function (seconds) {
+	Test.display.reset_in = function (seconds) {
 		if (!Test.display.show.fails) {
-			setTimeout(function () {
+			timer = setTimeout(function () {
 				window.location.reload();
 			}, seconds * 1000);
 		}
 	};
 
 	/**
-	 * @name reset_int
-	 * @param int seconds
+	 * @name print_r
+	 * @param string title
+	 * @param mixed data
 	 * @return void
 	 * 
-	 * reloads the page is all tests have passed
+	 * displayes data
 	 */
 	Test.display.print_r = function (title, data) {
 		this.to_show.push({

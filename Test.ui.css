@@ -67,6 +67,7 @@ div.Test_holder table td.Test_number {
 	font: 11px monospace;
 	padding-top: 0px;
 	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 .Test_action_holder {

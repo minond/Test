@@ -350,6 +350,10 @@
 	 * test short-cut functions
 	 */
 	Test.value = {
+		truthy: function (a) {
+			return a === true;
+		},
+
 		eq: function (a, b) {
 			return a === b;
 		},
@@ -434,7 +438,13 @@
 
 				break;
 			case obj instanceof Array: 
-				str += "[" + NEW_LINE;
+				var len = "";
+
+				if (obj.length) {
+					len = "(length " + obj.length + ") ";
+				}
+
+				str += len + "[" + NEW_LINE;
 
 				for (var i = 0, max = obj.length; i < max; i++) {
 					str += padding_for(level + 1) + Test.display.dump(obj[ i ], level + 1);
