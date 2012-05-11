@@ -23,3 +23,12 @@ var lt_check = Test.run("Less-than check no. 1", function (a) {
 Test.display.output();
 Test.display.output_failures();
 Test.display.summary();
+
+Test.display.print_r("Empty", Test.created_tests);
+Test.display.print_r("Empty", Test.created_tests);
+Test.display.print_r("Empty", Test.created_tests);
+Test.display.print_r("Empty", Test.created_tests);
+Test.display.print_r("Empty", Test.created_tests);
+
+Test.display.show();
+Test.display.show.reset_in(.5);

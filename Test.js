@@ -417,7 +417,7 @@
 
 				break;
 			case obj instanceof Function:
-				str += "Function";
+				str += "Function (" + (obj.name || "anonymous") + ")";
 
 				break;
 			case obj === void 0:
@@ -510,9 +510,21 @@
 
 	/**
 	 * @name try_again
-	 * refreshes page
+	 * @virtual
+	 *
+	 * called with "Reload" button is clicked
 	 */
 	Test.try_again = function () {
 		window.location.reload();
+	};
+
+	/**
+	 * @name reset
+	 * @virtual
+	 * 
+	 * called with "Reset" button in clicked
+	 */
+	Test.reset = function () {
+		Test.try_again();
 	};
 })();
