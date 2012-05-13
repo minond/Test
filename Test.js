@@ -38,13 +38,25 @@
 	};
 
 	/**
+	 * @name type
+	 * 
+	 * types of test cases
+	 */
+	TestCase.type = {
+		basic: 0,
+		one_of: 1
+	};
+
+	/**
 	 * @name on
 	 * @param list of test case parameters
 	 * @return void
 	 * 
-	 * updates the parameter(s) for the test case call.
+	 * updates the parameter(s) for the test case call
+	 * and sets test case type as a basic type.
 	 */
 	TestCase.prototype.on = function () {
+		this.type = TestCase.type.basic;
 		this.parameters = Array.prototype.splice.call(arguments, 0);
 	};
 
@@ -56,7 +68,7 @@
 	 */
 	var Test = window.Test = function (test_name, basic_case_result) {
 		this.test_name = test_name;
-		this.test = Test.value.eq;
+		this.test = Test.check.eq;
 		this.cases = [];
 		this.results = [];
 
@@ -121,7 +133,14 @@
 		for (var j = 0; j < times; j++) {
 			for (var i = 0, max = this.cases.length; i < max; i++) {
 				test = this.cases[ i ];
-				grade = this.test.apply(window, test.parameters);
+
+				// according to TestCase type
+				switch (test.type) {
+					case TestCase.type.basic:
+						grade = this.test.apply(window, test.parameters);
+						break;
+				}
+
 				pass = test.expects === grade;
 
 				// and save the test and result data
@@ -346,10 +365,10 @@
 	};
 
 	/**
-	 * @name value
+	 * @name check
 	 * test short-cut functions
 	 */
-	Test.value = {
+	Test.check = {
 		truthy: function (a) {
 			return a === true;
 		},
@@ -376,6 +395,46 @@
 
 		ge: function (a, b) {
 			return a >= b;
+		}
+	};
+
+	/**
+	 * @name value
+	 * test case value geneator helpers
+	 */
+	Test.value = {
+		one_of: function (list) {
+			if (!(list instanceof Array)) {
+				list = arguments;
+			}
+
+			return list[ Math.round( Math.random() * (list.length - 1) ) ];
+		},
+
+		number: function (from, to) {
+			// max only
+			if (from && !to) {
+				return Math.random() * from;
+			}
+			// range
+			else if (from && to) {
+				return from + (Math.random() * (1 + to - from));
+			}
+			// no limits
+			else {
+				return	Math.random() / 
+						Math.random() / 
+						Math.random() / 
+						Math.random();
+			}
+		},
+
+		integer: function (from, to) {
+			return parseInt(this.number(from, to));
+		},
+
+		bool: function () {
+			return !!Math.round(Math.random());
 		}
 	};
 
