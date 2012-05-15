@@ -92,7 +92,7 @@ div.Test_holder table td.Test_number {
 }
 
 .Test_key {
-	position: absolute;
+	position: fixed;
 	right: 15px;
 	bottom: 10px;
 	text-align: right;

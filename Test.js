@@ -35,6 +35,7 @@
 	var TestCase = function (expects) {
 		this.expects = expects;
 		this.parameters = [];
+		this.type = TestCase.type.basic;
 	};
 
 	/**
@@ -130,6 +131,19 @@
 	};
 
 	/**
+	 * @name param
+	 * @constructor
+	 * @param method function
+	 * @param array function arguments
+	 *
+	 * creates a new Dynamic Parameter
+	 */
+	Test.param = function TestParameter (method, params) {
+		this.method = method;
+		this.params = params || [];
+	};
+
+	/**
 	 * @name reset
 	 * @return void
 	 *
@@ -176,9 +190,17 @@
 
 					case TestCase.type.dynamic:
 						for (var p = 0; p < test.parameters.length; p++) {
-							params.push(
-								test.parameters[p][0].apply(window, test.parameters[p][1] || [])
-							);
+							if (test.parameters[ p ] instanceof Test.param) {
+								params.push(
+									test.parameters[p].method.apply(
+										window,
+										test.parameters[ p ].params
+									)
+								);
+							}
+							else {
+								params.push(test.parameters[ p ]);
+							}
 						}
 
 						// params = test.parameters.method.apply(window, test.parameters.args);
@@ -270,36 +292,17 @@
 
 	/**
 	 * @name run
-	 * @param string test_name
-	 * @param function test_function
-	 * @param array of test cases
-	 * @param int run count
+	 * @param string name test's name
+	 * @param function method test's test
 	 * @return Test instance
 	 * 
 	 * creates a new test and runs it.
 	 */
-	Test.run = function (test_name, test_function, test_cases, run_times) {
-		var test_case, test;
-		
-		// create the test
-		test = new Test(test_name);
+	Test.run = function (name, method) {
+		var test = new Test(name);
 
-		// set the test function
-		test.set_test(test_function);
-		
-		// set all test cases
-		for (var i = 0, max = test_cases.length; i < max; i++) {
-			// set the expected return value
-			test_case = test.expect(test_cases[i][0]);
-
-			// set the parameters (if any)
-			if (test_cases[i].length === 2) {
-				test_case.on.apply(test_case, test_cases[i][1]);
-			}
-		}
-
-		// finally, run the test
-		test.run(run_times || 1);
+		test.set_test(method);
+		test.expect(true);
 
 		return test;
 	};
@@ -448,7 +451,7 @@
 			}
 		}
 
-		console.log("\t%d\t\t%d\t\t%d\t\t%s", total, success, fail, test.test_name);
+		console.log("%d\t\t%d\t\t%d\t\t%s", total, success, fail, test.test_name);
 	};
 
 	/**
@@ -459,8 +462,8 @@
 	 * outputs a summary header
 	 */
 	Test.display.summary_header = function () {
-		console.log("\t%s\t\t%s\t\t%s\t\t%s", "Total", "Success", "Fail", "Test Name");
-		console.log("\t-------------------------------------------------------------------------");
+		console.log("%s\t\t%s\t\t%s\t\t%s", "Total", "Success", "Fail", "Test Name");
+		console.log("-------------------------------------------------------------------------");
 	};
 
 	/**
