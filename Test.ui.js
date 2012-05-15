@@ -31,6 +31,24 @@
 	var CELL = "td";
 	var css_added = false;
 
+	var node_id = "Test_node"
+	var display_toggler = true;
+
+
+	/**
+	 * @name bind_k
+	 * @param key_char string character
+	 * @param action function
+	 * @return void
+	 */
+	var bind_k = function (key_char, action) {
+		document.body.addEventListener("keydown", function (e) {
+			if (String.fromCharCode(e.keyCode) === key_char.toUpperCase()) {
+				action(e);
+			}
+		});
+	};
+
 	/**
 	 * @name node
 	 * @param string node type name
@@ -93,7 +111,8 @@
 		}
 
 		holder = node(BLOCK, {
-			className: "Test_holder Test_shadow"
+			className: "Test_holder Test_shadow",
+			id: node_id
 		});
 
 		// results
@@ -107,6 +126,7 @@
 		row.appendChild(node(CELL, { className: "Test_number", innerHTML: "Total" }));
 		row.appendChild(node(CELL, { className: "Test_number", innerHTML: "Pass" }));
 		row.appendChild(node(CELL, { className: "Test_number", innerHTML: "Fail" }));
+		row.appendChild(node(CELL, { className: "Test_number", innerHTML: "Time (ms)" }));
 		row.appendChild(node(CELL, { innerHTML: "Test Name" }));
 
 		results.appendChild(row);
@@ -142,6 +162,10 @@
 			row.appendChild(node(CELL, {
 				innerHTML: fails,
 				className: fails ? "Test_fail" : ""
+			}));
+			
+			row.appendChild(node(CELL, {
+				innerHTML: Test.created_tests[ test ].total_time
 			}));
 			
 			row.appendChild(node(CELL, {
@@ -184,11 +208,7 @@
 					className: "Test_action_button",
 					type: "button",
 					value: "Stop",
-					onclick: function () {
-						if (timer) {
-							clearTimeout(timer);
-						}
-					}
+					onclick: Test.display.reset_in.cancel
 				})
 			);
 
@@ -229,7 +249,7 @@
 	var timer;
 
 	/**
-	 * @name reset_int
+	 * @name reset_in
 	 * @param int seconds
 	 * @return void
 	 * 
@@ -240,6 +260,12 @@
 			timer = setTimeout(function () {
 				window.location.reload();
 			}, seconds * 1000);
+		}
+	};
+
+	Test.display.reset_in.cancel = function () {
+		if (timer) {
+			clearTimeout(timer);
 		}
 	};
 
@@ -258,7 +284,40 @@
 		});
 	};
 
+
+	/**
+	 * @name to_show
+	 *
+	 * holds display data
+	 */
 	Test.display.to_show = [];
+
+	/**
+	 * @name hide
+	 * @return void
+	 *
+	 * hides the test output
+	 */
+	Test.display.hide = function (show) {
+		var nodes = document.querySelectorAll(".Test_holder");
+
+		for (var i = 0, max = nodes.length; i < max; i++) {
+			nodes[ i ].style.display = !show ? "none" : "";
+		}
+	};
+
+	/**
+	 * @name bind_keys
+	 * 
+	 * binds action shortcuts
+	 */
+	Test.display.bind_keys = function () {
+		bind_k("r", Test.reset);
+		bind_k("p", Test.display.reset_in.cancel);
+		bind_k("c", function () {
+			Test.display.hide(display_toggler = !display_toggler);
+		});
+	};
 
 	Test.settings.css_href = "/Test/Test.ui.css";
 	Test.settings.show_actions = true;

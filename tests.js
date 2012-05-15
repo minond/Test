@@ -1,5 +1,15 @@
-Test.settings.show_fail_information = true;
-Test.settings.show_success_information = true;
+//// Test tests
+
+var start = 5;
+var end = 100;
+
+// parameter value generators
+var param_check = new Test("Testing parameter generators");
+param_check.set_test(Test.check.between(start, end));
+param_check.expect(true).using([Test.value.number, [start, end]]);
+param_check.expect(true).using([Test.value.integer, [start, end]]);
+param_check.fail_print();
+param_check.run(1500);
 
 var eq_check = new Test("Equality check no. 1");
 
@@ -24,11 +34,6 @@ Test.display.output();
 Test.display.output_failures();
 Test.display.summary();
 
-Test.display.print_r("Empty", Test.created_tests);
-Test.display.print_r("Empty", Test.created_tests);
-Test.display.print_r("Empty", Test.created_tests);
-Test.display.print_r("Empty", Test.created_tests);
-Test.display.print_r("Empty", Test.created_tests);
-
 Test.display.show();
-Test.display.show.reset_in(.5);
+Test.display.reset_in(5);
+Test.display.bind_keys();

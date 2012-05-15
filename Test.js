@@ -44,7 +44,7 @@
 	 */
 	TestCase.type = {
 		basic: 0,
-		one_of: 1
+		dynamic: 1
 	};
 
 	/**
@@ -61,16 +61,36 @@
 	};
 
 	/**
+	 * @name using
+	 * @param funciton method value generating method
+	 * @param array args parameters for method
+	 * @return void
+	 * 
+	 * updates the parameter(s) for the test case call
+	 * and sets the test case type as a dynamic type.
+	 */
+	TestCase.prototype.using = function () {
+		this.type = TestCase.type.dynamic;
+		this.parameters = Array.prototype.splice.call(arguments, 0);
+	};
+
+	/**
 	 * @constructor Test
 	 * @param string test name
 	 * 
 	 * creates a new Test instance
 	 */
 	var Test = window.Test = function (test_name, basic_case_result) {
-		this.test_name = test_name;
+		// default test method is an equality check
 		this.test = Test.check.eq;
+		this.test_name = test_name;
+		this.total_time = 0;
 		this.cases = [];
 		this.results = [];
+
+		// "virtual" methods
+		this.on_pass = null;
+		this.on_fail = null;
 
 		// save this test
 		Test.created_tests[ test_name ] = this;
@@ -110,6 +130,17 @@
 	};
 
 	/**
+	 * @name reset
+	 * @return void
+	 *
+	 * resets results so that the test can run again
+	 */
+	Test.prototype.reset = function () {
+		this.results = [];
+		this.times = null;
+	};
+
+	/**
 	 * @name run
 	 * @return void
 	 * 
@@ -117,7 +148,8 @@
 	 * result data for each of the cases.
 	 */
 	Test.prototype.run = function (times) {
-		var test, grade, pass;
+		var test, grade, pass, result, params;
+		var start_time = Date.now();
 
 		if (this.results.length) {
 			return false;
@@ -133,27 +165,97 @@
 		for (var j = 0; j < times; j++) {
 			for (var i = 0, max = this.cases.length; i < max; i++) {
 				test = this.cases[ i ];
+				params = [];
 
 				// according to TestCase type
 				switch (test.type) {
 					case TestCase.type.basic:
-						grade = this.test.apply(window, test.parameters);
+						params = test.parameters;
+						grade = this.test.apply(window, params);
+						break;
+
+					case TestCase.type.dynamic:
+						for (var p = 0; p < test.parameters.length; p++) {
+							params.push(
+								test.parameters[p][0].apply(window, test.parameters[p][1] || [])
+							);
+						}
+
+						// params = test.parameters.method.apply(window, test.parameters.args);
+						grade = this.test.apply(window, params);
 						break;
 				}
 
 				pass = test.expects === grade;
 
-				// and save the test and result data
-				this.results.push({
+				result = {
 					pass: pass,
 					test_case: i,
 					case_iteration_count: j,
 					actual: grade,
 					expected: test.expects,
-					parameters: test.parameters
-				});
+					parameters: params
+				};
+
+				// pass callbacks
+				if (pass) {
+					if (this.on_pass && this.on_pass instanceof Function) {
+						this.on_pass(result);
+					}
+					else if (Test.on_pass && Test.on_pass instanceof Function) {
+						Test.on_pass(result);
+					}
+				}
+
+				// fail callbacks
+				if (!pass) {
+					if (this.on_fail && this.on_fail instanceof Function) {
+						this.on_fail(result);
+					}
+					else if (Test.on_fail && Test.on_fail instanceof Function) {
+						Test.on_fail(result);
+					}
+				}
+
+				// and save the test and result data
+				this.results.push(result);
 			}
 		}
+
+		this.total_time = Date.now() - start_time;
+	};
+
+	/**
+	 * @name on_pass
+	 * @static/virtual
+	 * 
+	 * if set, called when a test case passes
+	 */
+	Test.on_pass = null;
+
+	/**
+	 * @name on_fail
+	 * @static/virtual
+	 * 
+	 * if set, called when a test case fails
+	 */
+	Test.on_fail = null;
+
+	/**
+	 * @name fail_print
+	 * @param string print_title
+	 * @return bool on_fail overwritten
+	 * 
+	 * helper function for setting on_fail callback
+	 */
+	Test.prototype.fail_print = function (print_tile) {
+		var overwritten = !!this.on_fail;
+
+		this.on_fail = function (data) {
+			Test.display.print_r(this.test_name + " (" + Date.now() + ")", data);
+		};
+
+		return overwritten;
 	};
 
 	/**
@@ -395,6 +497,12 @@
 
 		ge: function (a, b) {
 			return a >= b;
+		},
+
+		between: function (a, b) {
+			return function (c) {
+				return Test.check.ge(c, a) && Test.check.le(c, b);
+			}
 		}
 	};
 
@@ -430,7 +538,7 @@
 		},
 
 		integer: function (from, to) {
-			return parseInt(this.number(from, to));
+			return parseInt(Test.value.number(from, to));
 		},
 
 		bool: function () {
@@ -447,7 +555,7 @@
 	 * parses any variable into a human readable string.
 	 */
 	Test.display.dump = function (obj, level) {
-		var str = "", padding = "", first = true, empty = true;
+		var str = "", padding = "", first = true, empty = true, temp;
 		var TAB = "  ", NEW_LINE = "\n";
 
 		var padding_for = function (lvl) {
@@ -530,7 +638,13 @@
 						str += ",";
 					}
 
-					str += NEW_LINE + padding_for(level + 1) + prop + ": " + Test.display.dump(obj[ prop ], level + 1);
+					temp = prop;
+
+					if (temp.match(/\s/)) {
+						temp = Test.display.dump(temp);
+					}
+
+					str += NEW_LINE + padding_for(level + 1) + temp + ": " + Test.display.dump(obj[ prop ], level + 1);
 					first = false;
 					empty = false;
 				}
@@ -553,6 +667,7 @@
 
 	/**
 	 * @name settings
+	 *
 	 * test and output settings
 	 */
 	Test.settings = {
@@ -567,15 +682,10 @@
 
 	/**
 	 * @name created_tests
+	 *
 	 * stores all created tests
 	 */
 	Test.created_tests = {};
-
-	/**
-	 * @name save_all
-	 * saves all created tests
-	 */
-	Test.save_all = function () {};
 
 	/**
 	 * @name try_again
