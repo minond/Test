@@ -156,7 +156,7 @@
 		}
 
 		if (!times) {
-			times = 1;
+			times = Test.settings.default_times;
 		}
 
 		this.times = times;
@@ -248,11 +248,21 @@
 	 * 
 	 * helper function for setting on_fail callback
 	 */
-	Test.prototype.fail_print = function (print_tile) {
+	Test.prototype.fail_print = function () {
 		var overwritten = !!this.on_fail;
 
 		this.on_fail = function (data) {
 			Test.display.print_r(this.test_name + " (" + Date.now() + ")", data);
+		};
+
+		return overwritten;
+	};
+
+	Test.fail_print = function () {
+		var overwritten = !!Test.on_fail;
+
+		Test.on_fail = function (data) {
+			Test.display.print_r("Failed Case (" + Date.now() + ")", data);
 		};
 
 		return overwritten;
@@ -520,13 +530,21 @@
 		},
 
 		number: function (from, to) {
+			var ret;
+
 			// max only
 			if (from && !to) {
 				return Math.random() * from;
 			}
 			// range
 			else if (from && to) {
-				return from + (Math.random() * (1 + to - from));
+				ret = from + (Math.random() * (1 + to - from));
+
+				if (ret > to) {
+					ret = to;
+				}
+
+				return ret;
 			}
 			// no limits
 			else {
@@ -677,7 +695,11 @@
 
 		// display additional inforamation about
 		// succesfull cases.
-		show_success_information: true
+		show_success_information: true,
+
+		// default number of time each
+		// test case is ran
+		default_times: 1
 	};
 
 	/**

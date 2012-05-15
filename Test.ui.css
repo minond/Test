@@ -90,3 +90,18 @@ div.Test_holder table td.Test_number {
 .Test_center {
 	text-align: center;
 }
+
+.Test_key {
+	position: absolute;
+	right: 15px;
+	bottom: 10px;
+	text-align: right;
+}
+
+.Test_key * {
+	font: bold 10px monospace;
+}
+
+.Test_key b {
+	color: red;
+}

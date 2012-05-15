@@ -306,17 +306,39 @@
 		}
 	};
 
+	var gen_title = function (key, message) {
+		var ckey = node("b", { innerHTML: "[" + key + "]" });
+		var csep = node("span", { innerHTML: " " });
+		var cmsg = node("span", { innerHTML: message });
+
+		var holder = node(BLOCK, { className: "Test_key_title" });
+
+		holder.appendChild(cmsg);
+		holder.appendChild(csep);
+		holder.appendChild(ckey);
+
+		return holder;
+	};
+
 	/**
 	 * @name bind_keys
 	 * 
 	 * binds action shortcuts
 	 */
 	Test.display.bind_keys = function () {
+		var holder = node(BLOCK, { className: "Test_key" });
+
 		bind_k("r", Test.reset);
 		bind_k("p", Test.display.reset_in.cancel);
 		bind_k("c", function () {
 			Test.display.hide(display_toggler = !display_toggler);
 		});
+
+		holder.appendChild( gen_title("c", "Hide tests") );
+		holder.appendChild( gen_title("r", "Reset tests") );
+		holder.appendChild( gen_title("p", "Cancel auto-reset") );
+
+		document.body.appendChild(holder);
 	};
 
 	Test.settings.css_href = "/Test/Test.ui.css";
