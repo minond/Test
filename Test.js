@@ -81,7 +81,7 @@
 	 * 
 	 * creates a new Test instance
 	 */
-	var Test = window.Test = function (test_name, basic_case_result) {
+	var Test = window.Test = function Test (test_name, basic_case_result) {
 		// default test method is an equality check
 		this.test = Test.check.eq;
 		this.test_name = test_name;
@@ -135,12 +135,35 @@
 	 * @constructor
 	 * @param method function
 	 * @param array function arguments
+	 * @param object function scope
+	 * @return TestParameter instance
 	 *
 	 * creates a new Dynamic Parameter
 	 */
-	Test.param = function TestParameter (method, params) {
+	Test.param = function TestParameter (method, params, scope) {
 		this.method = method;
 		this.params = params || [];
+		this.scope = scope || window;
+	};
+
+	/**
+	 * @name arg
+	 * @return TestParameter instance
+	 *
+	 * TestParameter short-cut
+	 */
+	Test.arg = function (method, params, scope) {
+		return new Test.param(method, params, scope);
+	};
+
+	/**
+	 * @name gen_value
+	 * @return generated value
+	 * 
+	 * generates value from a test parameter
+	 */
+	Test.param.prototype.gen_value = function () {
+		return this.method.apply(this.scope, this.params);
 	};
 
 	/**
@@ -164,6 +187,10 @@
 	Test.prototype.run = function (times) {
 		var test, grade, pass, result, params;
 		var start_time = Date.now();
+
+		if (times === false) {
+			return delete Test.created_tests[ this.test_name ];
+		}
 
 		if (this.results.length) {
 			return false;
@@ -191,12 +218,7 @@
 					case TestCase.type.dynamic:
 						for (var p = 0; p < test.parameters.length; p++) {
 							if (test.parameters[ p ] instanceof Test.param) {
-								params.push(
-									test.parameters[p].method.apply(
-										window,
-										test.parameters[ p ].params
-									)
-								);
+								params.push(test.parameters[ p ].gen_value());
 							}
 							else {
 								params.push(test.parameters[ p ]);
@@ -524,15 +546,63 @@
 	 * test case value geneator helpers
 	 */
 	Test.value = {
-		one_of: function (list) {
-			if (!(list instanceof Array)) {
-				list = arguments;
+		character: function (len, strong, basic) {
+			var ret = { str: "", keys: [] }, code, key, upper, usespecial;
+			var special = "0123456789!@#$%^&*()_+-=[]{};':,.<>/?\\\"`~".split("");
+			var key_start = 65, key_end = 90;
+
+			for (var i = 0, max = len || 0; i < max; i++) {
+				if (strong === false) {
+					usespecial = false;
+				}
+				else {
+					usespecial = this.bool();
+				}
+
+				if (usespecial) {
+					upper = false;
+					key = this.one_of.apply(null, special);
+					code = key.charCodeAt(0);
+				}
+				else {
+					upper = this.bool();
+					code = this.integer(key_start, key_end);
+					key = String.fromCharCode(code);
+
+					if (upper) {
+						key = key.toUpperCase();
+					}
+					else {
+						key = key.toLowerCase();
+					}
+				}
+
+				ret.str += key;
+				ret.keys.push({
+					key: key,
+					code: code,
+					upper: upper,
+					special: usespecial
+				});
 			}
 
-			return list[ Math.round( Math.random() * (list.length - 1) ) ];
+			return basic ? ret.str : ret;
+		},
+
+		one_of: function (list) {
+			return arguments[ Math.round( Math.random() * (arguments.length - 1) ) ];
+		},
+
+		integer: function (from, to) {
+			return parseInt(Test.value.number(from, to));
+		},
+
+		bool: function () {
+			return !!Math.round(Math.random());
 		},
 
 		number: function (from, to) {
+			
 			var ret;
 
 			// max only
@@ -556,16 +626,23 @@
 						Math.random() / 
 						Math.random();
 			}
-		},
-
-		integer: function (from, to) {
-			return parseInt(Test.value.number(from, to));
-		},
-
-		bool: function () {
-			return !!Math.round(Math.random());
 		}
 	};
+
+	// generate short-cuts for all help methods
+	for (var test_fn in Test.value) {
+		(function (test) {
+			Test.arg[ test ] = function () {
+				var args = [];
+				var params = Array.prototype.slice.call(arguments, 0);
+
+				args.push(Test.value[ test ]);
+				args.push(params);
+
+				return Test.arg.apply(Test, args);
+			};
+		})(test_fn);
+	}
 
 	/**
 	 * @name dump
@@ -732,3 +809,6 @@
 		Test.try_again();
 	};
 })();
+
+
+
