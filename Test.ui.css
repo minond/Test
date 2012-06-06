@@ -3,7 +3,7 @@ body {
 }
 
 .Test_shadow {
-	box-shadow: 1px 1px 9px 2px #ccc;
+	/* box-shadow: 1px 1px 9px 2px #ccc; */
 }
 
 div.Test_holder {

@@ -556,17 +556,17 @@
 					usespecial = false;
 				}
 				else {
-					usespecial = this.bool();
+					usespecial = Test.value.bool();
 				}
 
 				if (usespecial) {
 					upper = false;
-					key = this.one_of.apply(null, special);
+					key = Test.value.one_of.apply(null, special);
 					code = key.charCodeAt(0);
 				}
 				else {
-					upper = this.bool();
-					code = this.integer(key_start, key_end);
+					upper = Test.value.bool();
+					code = Test.value.integer(key_start, key_end);
 					key = String.fromCharCode(code);
 
 					if (upper) {
@@ -602,7 +602,6 @@
 		},
 
 		number: function (from, to) {
-			
 			var ret;
 
 			// max only
@@ -695,6 +694,15 @@
 				break;
 			case obj === null:
 				str += "null";
+
+				break;
+			case obj instanceof Node:
+			case obj instanceof NodeList:
+				str += "Node";
+
+				break;
+			case obj === window:
+				str += "window";
 
 				break;
 			case obj instanceof Date:
@@ -809,6 +817,3 @@
 		Test.try_again();
 	};
 })();
-
-
-
