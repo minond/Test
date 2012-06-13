@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * Author: Marcos Minond
- * 
  */
 
 
@@ -34,6 +31,8 @@
 	var node_id = "Test_node"
 	var display_toggler = true;
 
+	var timer;
+
 
 	/**
 	 * @name bind_k
@@ -47,6 +46,26 @@
 				action(e);
 			}
 		});
+	};
+
+	/**
+	 * @name gen_title
+	 * @param String key value
+	 * @param String message string
+	 * @return Node output element
+	 */
+	var gen_title = function (key, message) {
+		var ckey = node("b", { innerHTML: "[" + key + "]" });
+		var csep = node("span", { innerHTML: " " });
+		var cmsg = node("span", { innerHTML: message });
+
+		var holder = node(BLOCK, { className: "Test_key_title" });
+
+		holder.appendChild(cmsg);
+		holder.appendChild(csep);
+		holder.appendChild(ckey);
+
+		return holder;
 	};
 
 	/**
@@ -245,9 +264,6 @@
 		}
 	};
 
-
-	var timer;
-
 	/**
 	 * @name reset_in
 	 * @param int seconds
@@ -263,6 +279,12 @@
 		}
 	};
 
+	/**
+	 * @name cancel
+	 * @return void
+	 *
+	 * clears reset timer
+	 */
 	Test.display.reset_in.cancel = function () {
 		if (timer) {
 			clearTimeout(timer);
@@ -287,6 +309,7 @@
 
 	/**
 	 * @name to_show
+	 * @var Array
 	 *
 	 * holds display data
 	 */
@@ -306,22 +329,9 @@
 		}
 	};
 
-	var gen_title = function (key, message) {
-		var ckey = node("b", { innerHTML: "[" + key + "]" });
-		var csep = node("span", { innerHTML: " " });
-		var cmsg = node("span", { innerHTML: message });
-
-		var holder = node(BLOCK, { className: "Test_key_title" });
-
-		holder.appendChild(cmsg);
-		holder.appendChild(csep);
-		holder.appendChild(ckey);
-
-		return holder;
-	};
-
 	/**
 	 * @name bind_keys
+	 * @return void
 	 * 
 	 * binds action shortcuts
 	 */
@@ -341,6 +351,15 @@
 		document.body.appendChild(holder);
 	};
 
+	/**
+	 * @name css_href
+	 * @var String
+	 */
 	Test.settings.css_href = "/Test/Test.ui.css";
+
+	/**
+	 * @name show_actions
+	 * @var String
+	 */
 	Test.settings.show_actions = true;
 })();

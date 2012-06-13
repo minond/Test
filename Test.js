@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * Author: Marcos Minond
- * 
  */
 
 
@@ -40,6 +37,7 @@
 
 	/**
 	 * @name type
+	 * @var Object
 	 * 
 	 * types of test cases
 	 */
@@ -225,7 +223,6 @@
 							}
 						}
 
-						// params = test.parameters.method.apply(window, test.parameters.args);
 						grade = this.test.apply(window, params);
 						break;
 				}
@@ -302,6 +299,13 @@
 		return overwritten;
 	};
 
+	/**
+	 * @name fail_print
+	 * @param string print_title
+	 * @return bool on_fail overwritten
+	 * 
+	 * helper function for setting on_fail callback
+	 */
 	Test.fail_print = function () {
 		var overwritten = !!Test.on_fail;
 
@@ -330,7 +334,7 @@
 	};
 
 	/**
-	 * @name
+	 * @name run_all
 	 * @return void
 	 *
 	 * runs all created tests
@@ -345,6 +349,8 @@
 
 	/**
 	 * @name display
+	 * @var Object
+	 * 
 	 * output namespace
 	 */
 	Test.display = {};
@@ -503,6 +509,8 @@
 
 	/**
 	 * @name check
+	 * @var Object
+	 *
 	 * test short-cut functions
 	 */
 	Test.check = {
@@ -543,6 +551,8 @@
 
 	/**
 	 * @name value
+	 * @var Object
+	 *
 	 * test case value geneator helpers
 	 */
 	Test.value = {
@@ -773,6 +783,7 @@
 
 	/**
 	 * @name settings
+	 * @var Object
 	 *
 	 * test and output settings
 	 */
@@ -792,6 +803,7 @@
 
 	/**
 	 * @name created_tests
+	 * @var Object
 	 *
 	 * stores all created tests
 	 */
